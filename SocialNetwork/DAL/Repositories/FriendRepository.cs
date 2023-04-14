@@ -11,7 +11,7 @@ namespace SocialNetwork.DAL.Repositories
     {
         public IEnumerable<FriendEntity> FindAllByUserId(int userId)
         {
-            return Query<FriendEntity>("select * from friend where user_id = :user_id", 
+            return Query<FriendEntity>("select * from friends where user_id = :user_id", 
                 new { user_id = userId });
         }
 

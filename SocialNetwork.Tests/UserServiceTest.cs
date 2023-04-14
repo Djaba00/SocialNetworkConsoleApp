@@ -2,42 +2,21 @@ using System;
 using SocialNetwork.BLL.Services;
 using SocialNetwork.BLL.Models;
 using SocialNetwork.DAL.Entities;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SocialNetwork.DAL.Repositories;
 using Xunit;
 using Moq;
-using SocialNetwork.DAL.Repositories;
-using System.Net.Http.Headers;
-using Castle.Components.DictionaryAdapter.Xml;
+
 
 namespace SocialNetwork.Tests
 {
     public class UserServiceTest
-    {   
-        List<UserEntity> usersDB = new List<UserEntity>()
-            {
-                new UserEntity()
-                {
-                    id = 1,
-                    firstname = "Timofey",
-                    lastname = "Shipelenko",
-                    password = "10101010",
-                    email = "shipelenko@gmail.com"
-                }
-            };
-
-        List<User> users = new List<User>()
-        {
-            new User(1, "Timofey", "Shipelenko", "10101010", "shipelenko9@gmail.com", "-", "-", "-", It.IsAny<IEnumerable<Message>>(),
-                It.IsAny<IEnumerable<Message>>(), It.IsAny<IEnumerable<User>>())
-        };
-
+    {
         [Fact]
-        public void AuthenticateMustReturnTrueValue()
+        public void AuthenticateMustReturnUserModel()
         {
-            var mockUR = new Mock<IUserRepository>();
+            // Arrage
+            var mockUserRepository = new Mock<IUserRepository>();
+            var userService = new UserService() { userRepository = mockUserRepository.Object };
 
             var userAutData = new UserAuthenticationData()
             {
@@ -45,14 +24,25 @@ namespace SocialNetwork.Tests
                 Password = "10101010"
             };
 
-            mockUR.Setup(ur => ur.FindByEmail(userAutData.Email)).Returns(usersDB.First(u => u.email == userAutData.Email));
+            UserEntity userEntity = new UserEntity()
+            {
+                id = 1,
+                firstname = "Timofey",
+                lastname = "Shipelenko",
+                password = "10101010",
+                email = "shipelenko@gmail.com"
+            };
 
-            var userService = new UserService() { userRepository = mockUR.Object };
+            mockUserRepository.Setup(u => u.FindByEmail(userAutData.Email)).Returns(userEntity);
 
-            var login = userService.Authenticate(userAutData);
+            //Act
+            var result =  userService.Authenticate(userAutData);
 
-            Assert.Contains(login, users);
-            
+            //Assert
+            Assert.NotNull(result);
+            Assert.IsType<User>(result);
+            Assert.Equal(userAutData.Email, result.Email);
+            Assert.Equal(userAutData.Password, result.Password);
         }
     }
 }
